@@ -1,97 +1,90 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <iostream>
+#include <string>
+#include <ctime>
+using namespace std;
 
 // Base class: Payment
-struct Payment {
-    char methodName[20];                     // Payment method name
-    double balance;                          // Balance for the payment method
-    void (*pay)(struct Payment*, double);    // Polymorphic function pointer
+class Payment {
+protected:
+    string methodName;   // Payment method name
+    double balance;      // Balance for the payment method
+
+public:
+    Payment(const string& methodName, double balance)
+        : methodName(methodName), balance(balance) {}
+
+    virtual ~Payment() {}  // Virtual destructor
+
+    virtual void pay(double amount) = 0; // Pure virtual function
+
+    // Helper to generate a receipt
+    void generateReceipt(double amount) const {
+        cout << "\n--- Transaction Receipt ---\n";
+        cout << "Payment Method: " << methodName << endl;
+        cout << "Amount Paid: $" << amount << endl;
+        time_t now = time(0);
+        cout << "Date: " << ctime(&now);
+        cout << "---------------------------\n\n";
+    }
 };
 
 // Derived class: CreditCard
-struct CreditCard {
-    struct Payment base;  // Inherits Payment
-    char cardNumber[17];   // 16-digit card number + null terminator
-    int cvv;               // Security code (CVV)
+class CreditCard : public Payment {
+    string cardNumber;  // 16-digit card number
+    int cvv;            // Security code (CVV)
+
+public:
+    CreditCard(const string& cardNumber, int cvv, double balance)
+        : Payment("Credit Card", balance), cardNumber(cardNumber), cvv(cvv) {}
+
+    // Override pay function for CreditCard-specific payment
+    void pay(double amount) override {
+        if (balance >= amount) {
+            cout << "Processing payment using Credit Card (" << cardNumber << ")...\n";
+            balance -= amount;
+            generateReceipt(amount);
+        } else {
+            cout << "Insufficient funds on Credit Card (" << cardNumber << ").\n";
+        }
+    }
 };
 
 // Derived class: UPI
-struct UPI {
-    struct Payment base;  // Inherits Payment
-    char upiID[30];        // UPI ID (e.g., user@upi)
+class UPI : public Payment {
+    string upiID;  // UPI ID (e.g., user@upi)
+
+public:
+    UPI(const string& upiID, double balance)
+        : Payment("UPI", balance), upiID(upiID) {}
+
+    // Override pay function for UPI-specific payment
+    void pay(double amount) override {
+        if (balance >= amount) {
+            cout << "Processing payment using UPI (" << upiID << ")...\n";
+            balance -= amount;
+            generateReceipt(amount);
+        } else {
+            cout << "Insufficient balance for UPI (" << upiID << ").\n";
+        }
+    }
 };
 
-// Function to generate a receipt
-void generateReceipt(const char* method, double amount) {
-    printf("\n--- Transaction Receipt ---\n");
-    printf("Payment Method: %s\n", method);
-    printf("Amount Paid: $%.2f\n", amount);
-    printf("Date: %s", ctime(&(time_t){time(NULL)}));
-    printf("---------------------------\n\n");
-}
-
-// CreditCard-specific payment function (polymorphic)
-void creditCardPayment(struct Payment* p, double amount) {
-    struct CreditCard* card = (struct CreditCard*)p;  // Cast to derived class
-    if (p->balance >= amount) {
-        printf("Processing payment using Credit Card (%s)...\n", card->cardNumber);
-        p->balance -= amount;
-        generateReceipt(p->methodName, amount);
-    } else {
-        printf("Insufficient funds on Credit Card (%s).\n", card->cardNumber);
-    }
-}
-
-// UPI-specific payment function (polymorphic)
-void upiPayment(struct Payment* p, double amount) {
-    struct UPI* upi = (struct UPI*)p;  // Cast to derived class
-    if (p->balance >= amount) {
-        printf("Processing payment using UPI (%s)...\n", upi->upiID);
-        p->balance -= amount;
-        generateReceipt(p->methodName, amount);
-    } else {
-        printf("Insufficient balance for UPI (%s).\n", upi->upiID);
-    }
-}
-
 // Function to execute payment (demonstrates polymorphism)
-void makePayment(struct Payment* p, double amount) {
-    printf("\nInitiating payment of $%.2f using %s...\n", amount, p->methodName);
-    p->pay(p, amount);  // Dynamically calls the appropriate payment function
-}
-
-// Helper function to create a CreditCard object
-struct CreditCard createCreditCard(const char* cardNumber, int cvv, double balance) {
-    struct CreditCard card;
-    strcpy(card.base.methodName, "Credit Card");
-    strcpy(card.cardNumber, cardNumber);
-    card.cvv = cvv;
-    card.base.balance = balance;
-    card.base.pay = creditCardPayment;  // Assign polymorphic function
-    return card;
-}
-
-// Helper function to create a UPI object
-struct UPI createUPI(const char* upiID, double balance) {
-    struct UPI upi;
-    strcpy(upi.base.methodName, "UPI");
-    strcpy(upi.upiID, upiID);
-    upi.base.balance = balance;
-    upi.base.pay = upiPayment;  // Assign polymorphic function
-    return upi;
+void makePayment(Payment* payment, double amount) {
+    cout << "\nInitiating payment of $" << amount << " using " << typeid(*payment).name() << "...\n";
+    payment->pay(amount);  // Dynamically calls the appropriate payment function
 }
 
 int main() {
     // Create and configure payment methods
-    struct CreditCard myCard = createCreditCard("1234567812345678", 123, 500.0);
-    struct UPI myUPI = createUPI("user@upi", 300.0);
+    CreditCard myCard("1234567812345678", 123, 500.0);
+    UPI myUPI("user@upi", 300.0);
 
     // Make payments using polymorphism
-    makePayment((struct Payment*)&myCard, 100.0);  // Successful Credit Card payment
-    makePayment((struct Payment*)&myUPI, 350.0);   // Failed UPI payment (insufficient balance)
-    makePayment((struct Payment*)&myUPI, 150.0);   // Successful UPI payment
+    makePayment(&myCard, 100.0);  // Successful Credit Card payment
+    makePayment(&myUPI, 350.0);   // Failed UPI payment (insufficient balance)
+    makePayment(&myUPI, 150.0);   // Successful UPI payment
 
     return 0;
 }
+
