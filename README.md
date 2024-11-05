@@ -1,67 +1,47 @@
+# Payment Processing System
 
-# **Electronic Payment System – C Program**
+This C++ program demonstrates an object-oriented approach to a simple payment processing system using inheritance and polymorphism. The program allows users to create different types of payment methods, such as Credit Card and UPI, and process payments using those methods.
 
-This project demonstrates a **menu-driven electronic payment system** using **polymorphism and inheritance in C**. It supports two payment methods: **Credit Card** and **UPI**. Each method inherits from a base `Payment` structure and implements unique payment behaviors using **function pointers for polymorphism**.
-
----
-
-## **Table of Contents**
+## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
-- [Modules](#modules)
-- [How it Works](#how-it-works)
+- [Classes](#classes)
 
 
----
+## Overview
 
-## **Overview**
-This system allows users to **simulate payments** using credit cards or UPI and demonstrates key concepts of **inheritance and polymorphism**. The program **dynamically selects the appropriate payment method** at runtime using **function pointers**, simulating real-world scenarios like **card payments** and **UPI transactions**.
+The program defines a base class `Payment` and derived classes `CreditCard` and `UPI`. Each derived class overrides the `pay` function to provide payment-specific logic. Polymorphism is used to dynamically call the correct `pay` function depending on the payment type.
 
----
+## Features
 
-## **Features**
-- **Polymorphism**: Function pointers dynamically call the appropriate payment method at runtime.
-- **Inheritance**: Credit Card and UPI inherit common attributes from the `Payment` structure.
-- **Receipt Generation**: Displays a transaction receipt with the method name, amount, and timestamp.
-- **Balance Management**: Ensures sufficient funds are available before processing payments.
+- Supports different payment types: **Credit Card** and **UPI**.
+- Generates a transaction receipt upon successful payment.
+- Handles insufficient balance for each payment type.
+- Demonstrates object-oriented principles, including inheritance and runtime polymorphism.
 
----
+## Classes
 
-## **Modules**
-### **1. Payment Module (Base Class):**
-- Stores common attributes like `methodName` and `balance`.
-- Uses function pointers to enable **polymorphic behavior**.
+### 1. `Payment` (Abstract Base Class)
+   - **Attributes**: `methodName`, `balance`
+   - **Methods**:
+     - `pay(double amount)`: Pure virtual function to be implemented by derived classes.
+     - `generateReceipt(double amount)`: Generates a receipt showing the method, amount, and date.
 
-### **2. CreditCard Module (Derived Class):**
-- Inherits from the `Payment` structure.
-- Contains attributes like `cardNumber` and `cvv`.
-- Implements the **`creditCardPayment()`** function.
+### 2. `CreditCard` (Derived Class)
+   - **Attributes**: `cardNumber`, `cvv`
+   - **Methods**:
+     - Overrides `pay` to process payments specifically for credit cards.
 
-### **3. UPI Module (Derived Class):**
-- Inherits from the `Payment` structure.
-- Contains the **UPI ID** (`upiID`).
-- Implements the **`upiPayment()`** function.
+### 3. `UPI` (Derived Class)
+   - **Attributes**: `upiID`
+   - **Methods**:
+     - Overrides `pay` to process payments specifically for UPI.
 
-### **4. Polymorphic Execution Module:**
-- Uses the **`makePayment()`** function to dynamically call the appropriate payment method.
+### Prerequisites
 
-### **5. Receipt Generation Module:**
-- Displays the payment receipt with the date using **`ctime()`**.
+To compile and run this program, you need:
+- A C++ compiler supporting C++11 or later (e.g., `g++`).
 
----
 
-## **How it Works**
-1. **Initialization**:
-   - A **Credit Card** and a **UPI** object are created and initialized with a balance.
 
-2. **Polymorphic Payment Execution**:
-   - The **`makePayment()`** function dynamically selects the correct payment function (`creditCardPayment()` or `upiPayment()`) using **function pointers**.
-
-3. **Receipt Generation**:
-   - After a successful payment, a **receipt** is generated showing the method name, amount, and date.
-
-4. **Balance Check**:
-   - If the balance is insufficient, the payment is denied.
-
----
 
